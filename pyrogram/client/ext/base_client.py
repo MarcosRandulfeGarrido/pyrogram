@@ -47,7 +47,7 @@ class BaseClient:
 
     LANG_CODE = "en"
 
-    PARENT_DIR = Path(sys.argv[0]).parent
+    PARENT_DIR = Path(os.getcwd())
 
     INVITE_LINK_RE = re.compile(r"^(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:org|me|dog)/joinchat/)([\w-]+)$")
     DIALOGS_AT_ONCE = 100
