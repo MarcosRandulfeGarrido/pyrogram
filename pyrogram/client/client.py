@@ -23,6 +23,7 @@ import math
 import os
 import re
 import shutil
+import sys
 import tempfile
 from configparser import ConfigParser
 from hashlib import sha256, md5
@@ -1524,10 +1525,18 @@ class Client(Methods, BaseClient):
 
             count = 0
 
+            import importlib.util
+
             if not include:
-                for path in sorted(Path(root.replace(".", "/")).rglob("*.py")):
-                    module_path = '.'.join(path.parent.parts + (path.stem,))
-                    module = import_module(module_path)
+                for path in sorted((Path(sys.argv[0]).parent / Path(root)).rglob("*.py")):
+                    spec = importlib.util.spec_from_file_location(path.stem, path)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # module_path = '.'.join(path.parent.parts + (path.stem,))
+                    # print(module_path)
+                    # module = import_module("Users.dan.projects/pyrogram/pyrogram/plugins/ao.py")
+                    # print(module)
 
                     for name in vars(module).keys():
                         # noinspection PyBroadException
@@ -1538,11 +1547,11 @@ class Client(Methods, BaseClient):
                                 self.add_handler(handler, group)
 
                                 log.info('[{}] [LOAD] {}("{}") in group {} from "{}"'.format(
-                                    self.session_name, type(handler).__name__, name, group, module_path))
+                                    self.session_name, type(handler).__name__, name, group, module.__name__))
 
                                 count += 1
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            log.debug(e)
             else:
                 for path, handlers in include:
                     module_path = root + "." + path
